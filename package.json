@@ -35,5 +35,10 @@
     "lint": "solhint 'contracts/*.sol'",
     "lint:fix": "solhint 'contracts/**/*.sol' --fix",
     "format": "prettier --write ."
-  }
+  },
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/RobItu/NFT-Marketplace.git",
+  "author": "robitu <robertoiturralde2009@hotmail.com>",
+  "license": "MIT"
 }

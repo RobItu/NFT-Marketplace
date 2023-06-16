@@ -6,22 +6,31 @@ const { assert, expect } = require("chai")
     ? describe.skip
     : describe("NftMarketplace test", function () {
         const chainId = network.config.chainId
-        let Nft, deployer
+        let Nft, deployer,player
+        const PRICE = ethers.utils.parseEther("0.1")
+        const TOKEN_ID = 0
         
         beforeEach(async function () {
             await deployments.fixture(["all"])
             deployer = (await getNamedAccounts()).deployer
+            const accounts = await ethers.getSigners()
+            player = accounts[1]
             Nft = await ethers.getContract("NftMarketplace", deployer)
+            basicNft = await ethers.getContract("BasicNft")
+            await basicNft.mintNft()
+            await basicNft.approve(Nft.address, TOKEN_ID)
         })
 
         describe("listItem", function () {
-            it("Reverts with error when price is 0", async () => {
-                const burnerAddress = "0xdDc3535f10beeB6485AFa65693fDA30048Eb7207"
-                await expect(Nft.listItem(burnerAddress, 0, 0)).to.be.revertedWith("NftMarketplace__PriceMustBeAboveZero()")
+
+            it("Lists and sells item", async () => {
+                await Nft.listItem(basicNft.address, TOKEN_ID, PRICE)
+                const playerConnected = Nft.connect(player)
+                await playerConnected.buyItem(basicNft.address, TOKEN_ID, {value:PRICE})
+                const newOwner = await basicNft.ownerOf(TOKEN_ID)
+                const deployerProceeds = await Nft.getProceeds(deployer)
+                assert(newOwner.toString() == player.address)
+                assert(deployerProceeds.toString() == PRICE.toString())
             })
-            // it("Reverts with error when NFT is not approved", async () => {
-            //     const burnerAddress = "0xdDc3535f10beeB6485AFa65693fDA30048Eb7207"
-            //     await expect(Nft.listItem(burnerAddress, 1, 1)).to.be.revertedWith("NftMarketplace__NotApprovedForMarketplace()")
-            // })
         })
     })
